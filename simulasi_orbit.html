@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulasi Orbit Bulan Mengelilingi Bumi</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to bottom, #00172b, #003d73);
+        color: white;
+        text-align: center;
+      }
+      canvas {
+        display: block;
+        margin: 20px auto;
+        border: 1px solid white;
+        background: radial-gradient(circle, #48f51d, #00172b);
+      }
+      h1 {
+        margin-top: 10px;
+      }
+      p {
+        font-size: 14px;
+        margin: 10px 20px;
+      }
+      #controls {
+        margin-top: 10px;
+      }
+      button {
+        background-color: #0f1c57;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      button:hover {
+        background-color: #005f99;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Simulasi Orbit Bulan Mengelilingi Bumi</h1>
+    <p>
+      Simulasi ini menggunakan metode integrasi Euler untuk menghitung posisi
+      bulan berdasarkan hukum gravitasi Newton. Posisi bulan diperbarui setiap
+      iterasi menggunakan metode diferensial dan integrasi numerik.
+    </p>
+    <canvas id="simulation" width="600" height="600"></canvas>
+    <div id="controls">
+      <button onclick="startSimulation()">Mulai</button>
+      <button onclick="resetSimulation()">Reset</button>
+      <button onclick="window.location.href='index.html'">Kembali</button>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("simulation");
+      const ctx = canvas.getContext("2d");
+
+      // Parameter fisika
+      const G = 6.6743e-11; // Gravitational constant (m^3 kg^-1 s^-2)
+      const M_earth = 5.972e24; // Mass of the Earth (kg)
+      const scale = 1e9; // Scaling for visualization (1 pixel = 1e9 meters)
+      const dt = 60 * 60; // Time step in seconds (1 hour)
+
+      // Bulan properties
+      let moon = {
+        x: 384400e3, // Initial x position (meters) - average distance from Earth to Moon
+        y: 0, // Initial y position (meters)
+        vx: 0, // Initial x velocity (meters/second)
+        vy: 1022, // Initial y velocity (meters/second) - average orbital speed of the Moon
+      };
+
+      let running = false;
+      let animationFrame;
+
+      function drawEarth() {
+        ctx.save();
+        ctx.translate(300, 300);
+        ctx.fillStyle = "#00ccff"; // Earth color
+        ctx.beginPath();
+        ctx.arc(0, 0, 20, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawMoon() {
+        // Menghitung posisi bulan relatif terhadap Bumi
+        const mx = 300 + moon.x / scale; // Posisi x bulan
+        const my = 300 + moon.y / scale; // Posisi y bulan
+
+        ctx.fillStyle = "#f0e68c"; // Moon color
+        ctx.beginPath();
+        ctx.arc(mx, my, 5, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      function updateMoon() {
+        // Menghitung jarak bulan ke bumi
+        const r = Math.sqrt(moon.x ** 2 + moon.y ** 2);
+
+        // *Metode Diferensial*: Menghitung percepatan dari gaya gravitasi
+        const F = (G * M_earth) / r ** 2; // Gaya gravitasi
+        const ax = -F * (moon.x / r); // Percepatan pada sumbu x
+        const ay = -
+
+                // Percepatan pada sumbu y
+
+        // *Metode Integrasi*: Memperbarui kecepatan menggunakan percepatan
+        moon.vx += ax * dt; // Kecepatan pada sumbu x
+        moon.vy += ay * dt; // Kecepatan pada sumbu y
+
+        // *Metode Integrasi*: Memperbarui posisi menggunakan kecepatan
+        moon.x += moon.vx * dt; // Posisi pada sumbu x
+        moon.y += moon.vy * dt; // Posisi pada sumbu y
+      }
+
+      function startSimulation() {
+        if (!running) {
+          running = true;
+          animate();
+        }
+      }
+
+      function resetSimulation() {
+        running = false;
+        cancelAnimationFrame(animationFrame);
+
+        // Reset bulan properties
+        moon.x = 384400e3; // Reset to initial x position
+        moon.y = 0; // Reset to initial y position
+        moon.vx = 0; // Reset to initial x velocity
+        moon.vy = 1022; // Reset to initial y velocity
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawEarth();
+      }
+
+      function animate() {
+        if (!running) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawEarth();
+        drawMoon();
+        updateMoon();
+
+        animationFrame = requestAnimationFrame(animate);
+      }
+
+      // Initial draw
+      drawEarth();
+    </script>
+  </body>
+</html>
